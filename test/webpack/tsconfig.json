@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es5",
+        "lib": [
+            "es2015"
+        ],
+        "outDir": "./build",
+        "esModuleInterop": true,
+        "typeRoots": [ "../node_modules/@types", "@custom_types" ]
+    },
+    "exclude": [
+        "build",
+        "../node_modules"
+    ]
+}
