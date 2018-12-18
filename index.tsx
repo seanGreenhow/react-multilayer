@@ -4,13 +4,18 @@ type PropType<Type> = Type extends React.Component<infer P> ? P : never
 type ReactElement<Type> = React.ReactElement<PropType<Type>>
 
 export class Layer<Props = {}, State = {}> extends React.Component<Props & React.HTMLAttributes<HTMLDivElement>, State> {
-    ref: HTMLDivElement
+    ref: React.RefObject<HTMLDivElement>
     lastPointerTarget: Element
+
+    constructor(props) {
+        super(props)
+        this.ref = React.createRef()
+    }
 
     render() {
         const { style, children, ...rest } = this.props
 
-        return (<div style={Object.assign({}, layerStyles, style ? style : {})} ref={(ref) => this.ref = ref} {...rest}>
+        return (<div style={Object.assign({}, layerStyles, style ? style : {})} ref={this.ref} {...rest}>
             {children}
         </div>)
     }
@@ -24,28 +29,28 @@ export class Layer<Props = {}, State = {}> extends React.Component<Props & React
 
     private checkMouseEnter(target: Element, e: React.MouseEvent<HTMLDivElement>) {
         if (this.lastPointerTarget !== target && target && !target.contains(this.lastPointerTarget)) {
-            let event = new MouseEvent('mouseenter', { bubbles: false })
+            const event = new MouseEvent('mouseenter', { bubbles: false })
             target.dispatchEvent(event)
         }
     }
 
     private checkMouseOver(target: Element, e: React.MouseEvent<HTMLDivElement>) {
         if (target && this.lastPointerTarget !== target) {
-            let event = new MouseEvent('mouseover', e)
+            const event = new MouseEvent('mouseover', e)
             target.dispatchEvent(event)
         }
     }
 
     private checkMouseLeave(target: Element, e: React.MouseEvent<HTMLDivElement>) {
         if (this.lastPointerTarget !== target && this.lastPointerTarget && !this.lastPointerTarget.contains(target)) {
-            let event = new MouseEvent('mouseleave', { ...e, bubbles: false })
+            const event = new MouseEvent('mouseleave', { ...e, bubbles: false })
             this.lastPointerTarget.dispatchEvent(event)
         }
     }
 
     private checkMouseOut(target: Element, e: React.MouseEvent<HTMLDivElement>) {
         if (this.lastPointerTarget && this.lastPointerTarget !== target) {
-            let event = new MouseEvent('mouseout', e)
+            const event = new MouseEvent('mouseout', e)
             this.lastPointerTarget.dispatchEvent(event)
         }
     }
@@ -57,10 +62,10 @@ export class Multilayer extends Layer {
 
     getPropagator<T extends typeof MouseEvent>(EventType: T) {
         return (e: React.MouseEvent) => {
-            let stopped = this.forEachLayer(layer => {
-                let element = document.elementFromPoint(e.clientX, e.clientY)
+            const stopped = this.forEachLayer(layer => {
+                const element = document.elementFromPoint(e.clientX, e.clientY)
                 if (element) {
-                    let new_event = new EventType(e.type, e)
+                    const new_event = new EventType(e.type, e)
                     return !element.dispatchEvent(new_event)
                 }
             })
@@ -82,20 +87,20 @@ export class Multilayer extends Layer {
     }
 
     forEachLayer(func: (layer: Layer) => any) {
-        this.clickCaptureLayer.ref.style.pointerEvents = 'none'
+        this.clickCaptureLayer.ref.current.style.pointerEvents = 'none'
 
-        let stopped = this.forEachLayerRaw(layer => {
+        const stopped = this.forEachLayerRaw(layer => {
             this.layers.filter(other_layer => other_layer != layer).forEach(other_layer => {
-                other_layer.ref.style.pointerEvents = 'none'
+                other_layer.ref.current.style.pointerEvents = 'none'
             })
-            layer.ref.style.pointerEvents = 'all'
+            layer.ref.current.style.pointerEvents = 'all'
 
             return func(layer)
         })
 
-        this.clickCaptureLayer.ref.style.pointerEvents = 'inherit'
+        this.clickCaptureLayer.ref.current.style.pointerEvents = 'inherit'
         this.forEachLayerRaw(layer => {
-            layer.ref.style.pointerEvents = 'inherit'
+            layer.ref.current.style.pointerEvents = 'inherit'
         })
 
         return stopped
@@ -103,7 +108,7 @@ export class Multilayer extends Layer {
 
     render() {
         return (
-            <div id={this.props.id} style={layerStyles} ref={(ref) => this.ref = ref}>
+            <div id={this.props.id} style={layerStyles} ref={this.ref}>
                 {this.reset() && React.Children.map(this.props.children, (element: ReactElement<Layer>) => {
                     if (element && typeof element.type != "string") {
                         if (element.type === Layer || element.type.prototype instanceof Layer) {
@@ -129,39 +134,47 @@ export class Multilayer extends Layer {
 }
 
 class ClickCaptureLayer extends React.Component<{ wrapper: Multilayer }> {
-    ref: HTMLDivElement
+    ref: React.RefObject<HTMLDivElement>
+
+    constructor(props) {
+        super(props)
+        this.ref = React.createRef();
+    }
+
     render() {
-        return (<div style={layerStyles} ref={(ref) => this.ref = ref}
-            onClick={this.props.wrapper.getPropagator(MouseEvent)}
-            onDoubleClick={this.props.wrapper.getPropagator(MouseEvent)}
-            onMouseDown={this.props.wrapper.getPropagator(MouseEvent)}
-            onMouseUp={this.props.wrapper.getPropagator(MouseEvent)}
-            onContextMenu={this.props.wrapper.getPropagator(MouseEvent)}
+        const mousePropagator = this.props.wrapper.getPropagator(MouseEvent)
+        const wheelPropagator = this.props.wrapper.getPropagator(WheelEvent)
+        const dragPropagator = this.props.wrapper.getPropagator(DragEvent)
 
-            onWheel={this.props.wrapper.getPropagator(WheelEvent)}
+        return (<div style={layerStyles} ref={this.ref}
+            onClick={mousePropagator}
+            onDoubleClick={mousePropagator}
+            onMouseDown={mousePropagator}
+            onMouseUp={mousePropagator}
+            onContextMenu={mousePropagator}
 
+            onWheel={wheelPropagator}
 
-            onDrag={this.props.wrapper.getPropagator(DragEvent)}
-            onDragStart={this.props.wrapper.getPropagator(DragEvent)}
-            onDragEnd={this.props.wrapper.getPropagator(DragEvent)}
-            onDragEnter={this.props.wrapper.getPropagator(DragEvent)}
-            onDragLeave={this.props.wrapper.getPropagator(DragEvent)}
-            onDragOver={this.props.wrapper.getPropagator(DragEvent)}
-            onDragExit={this.props.wrapper.getPropagator(DragEvent)}
-            onDrop={this.props.wrapper.getPropagator(DragEvent)}
+            onDrag={dragPropagator}
+            onDragStart={dragPropagator}
+            onDragEnd={dragPropagator}
+            onDragEnter={dragPropagator}
+            onDragLeave={dragPropagator}
+            onDragOver={dragPropagator}
+            onDragExit={dragPropagator}
+            onDrop={dragPropagator}
 
-
-            onMouseMove={(e) => {
-                this.props.wrapper.getPropagator(MouseEvent)(e)
-
-                this.props.wrapper.forEachLayer(layer => {
-                    let target = document.elementFromPoint(e.clientX, e.clientY)
-                    layer.checkMouseTrigger(target, e)
-                    layer.lastPointerTarget = target
-                })
-
-            }}
+            onMouseMove={this.handleMouseMove}
         />)
+    }
+
+    handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        this.props.wrapper.getPropagator(MouseEvent)(e)
+        this.props.wrapper.forEachLayer(layer => {
+            const target = document.elementFromPoint(e.clientX, e.clientY)
+            layer.checkMouseTrigger(target, e)
+            layer.lastPointerTarget = target
+        })
     }
 }
 
