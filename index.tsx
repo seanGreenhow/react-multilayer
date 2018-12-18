@@ -56,7 +56,7 @@ export class Multilayer extends Layer {
     clickCaptureLayer: ClickCaptureLayer
 
     getPropagator<T extends typeof MouseEvent>(EventType: T) {
-        let func = function (this: Multilayer, e: React.MouseEvent) {
+        return (e: React.MouseEvent) => {
             let stopped = this.forEachLayer(layer => {
                 let element = document.elementFromPoint(e.clientX, e.clientY)
                 if (element) {
@@ -69,7 +69,6 @@ export class Multilayer extends Layer {
                 e.stopPropagation()
             }
         }
-        return func.bind(this)
     }
 
     private forEachLayerRaw(func: (layer: Layer) => any) {
