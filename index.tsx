@@ -4,7 +4,7 @@ type PropType<Type> = Type extends React.Component<infer P> ? P : never
 type ReactElement<Type> = React.ReactElement<PropType<Type>>
 
 export class Layer<Props = {}, State = {}> extends React.Component<Props & React.HTMLAttributes<HTMLDivElement>, State> {
-    ref: React.RefObject<HTMLDivElement> = React.createRef()
+    readonly ref = React.createRef<HTMLDivElement>()
     lastPointerTarget: Element
 
     render() {
@@ -129,7 +129,7 @@ export class Multilayer extends Layer {
 }
 
 class ClickCaptureLayer extends React.Component<{ wrapper: Multilayer }> {
-    ref: React.RefObject<HTMLDivElement> = React.createRef()
+    readonly ref = React.createRef<HTMLDivElement>()
 
     render() {
         const mousePropagator = this.props.wrapper.getPropagator(MouseEvent)
