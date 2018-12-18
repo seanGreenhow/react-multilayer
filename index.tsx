@@ -53,7 +53,7 @@ export class Layer<Props = {}, State = {}> extends React.Component<Props & React
 
 export class Multilayer extends Layer {
     layers: Layer[] = []
-    clickCaptureLayer: ClickCaptureLayer
+    readonly clickCaptureLayer = React.createRef<ClickCaptureLayer>()
 
     getPropagator<T extends typeof MouseEvent>(EventType: T) {
         return (e: React.MouseEvent) => {
@@ -82,7 +82,7 @@ export class Multilayer extends Layer {
     }
 
     forEachLayer(func: (layer: Layer) => any) {
-        this.clickCaptureLayer.ref.current.style.pointerEvents = 'none'
+        this.clickCaptureLayer.current.ref.current.style.pointerEvents = 'none'
 
         const stopped = this.forEachLayerRaw(layer => {
             this.layers.filter(other_layer => other_layer != layer).forEach(other_layer => {
@@ -93,7 +93,7 @@ export class Multilayer extends Layer {
             return func(layer)
         })
 
-        this.clickCaptureLayer.ref.current.style.pointerEvents = 'inherit'
+        this.clickCaptureLayer.current.ref.current.style.pointerEvents = 'inherit'
         this.forEachLayerRaw(layer => {
             layer.ref.current.style.pointerEvents = 'inherit'
         })
@@ -116,7 +116,7 @@ export class Multilayer extends Layer {
                 })}
                 <ClickCaptureLayer
                     wrapper={this}
-                    ref={clickLayer => this.clickCaptureLayer = clickLayer}
+                    ref={this.clickCaptureLayer}
                 />
             </div>
         )
