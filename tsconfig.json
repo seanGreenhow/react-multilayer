@@ -1,13 +1,13 @@
 {
     "compilerOptions": {
-        "target": "es6",
+        "target": "es5",
         "lib": [ "esnext", "dom" ],
         "downlevelIteration": true,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
         "module": "commonjs",
-        "outDir": "./build",
         "jsx": "react",
-        "typeRoots": [ "node_modules/@types" ]
+        "typeRoots": [ "node_modules/@types" ],
+
+        "outDir": "./build",
+        "declaration": true
     }
 }

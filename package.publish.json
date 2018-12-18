@@ -1,0 +1,9 @@
+{
+  "name": "react-multilayer",
+  "version": "0.8.0",
+  "main": "index.js",
+  "license": "GPL-3.0-or-later",
+  "peerDependencies": {
+    "react": "^16.6.0"
+  }
+}
