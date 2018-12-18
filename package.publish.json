@@ -1,8 +1,9 @@
 {
   "name": "react-multilayer",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "main": "index.js",
   "license": "GPL-3.0-or-later",
+  "author": "Sean Greenhow (sean@hamburg.de)",
   "peerDependencies": {
     "react": "^16.6.0"
   }
