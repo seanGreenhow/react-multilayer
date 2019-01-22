@@ -90,7 +90,7 @@ export class Layer<Props = {}, State = {}> extends React.Component<Props & React
     }
 }
 
-export class Multilayer extends Layer<{ dragHandler?: DragHandler }> {
+export class Multilayer<Props = {}, State = {}> extends Layer<Props & { dragHandler?: DragHandler }, State> {
     layers: Layer[] = []
     readonly clickCaptureLayer = React.createRef<ClickCaptureLayer>()
     dragHandler: DragHandler
