@@ -1,16 +1,17 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { Layer, Multilayer } from "..";
+import { Layer, Multilayer, Dropzone } from "..";
 
-function allowDrop(ev: React.DragEvent<HTMLDivElement>) {
-    ev.preventDefault();
-}
-
-function drag(ev: React.DragEvent<HTMLDivElement>) {
+function dragStart(ev: React.DragEvent<HTMLElement>) {
     ev.dataTransfer.setData("text", (ev.target as any).id);
 }
 
-function drop(ev: React.DragEvent<HTMLDivElement>) {
+function drag(ev: React.DragEvent<HTMLElement>) {
+    ev.persist()
+    console.log(ev)
+}
+
+function drop(ev: DragEvent) {
     ev.preventDefault();
     var data = ev.dataTransfer.getData("text");
     (ev.target as any).appendChild(document.getElementById(data));
@@ -42,20 +43,27 @@ window.onload = async () => {
                     }}
                 >
                     DragLayer
-                    <div onDrop={drop}
+                    <Dropzone id="dropzone1" onDrop={drop}
                         onDragEnter={() => console.log('entered drag zone')}
                         onDragLeave={() => console.log('left drag zone')}
+                        onDragOver={() => console.log('over drag zone')}
+                        onDragExit={() => console.log('exit drag zone')}
                         style={{ width: 100, height: 100, background: 'gray', borderWidth: 1, borderColor: 'black', borderStyle: 'solid' }}>
-                        <div id="drag1" draggable={true} onDragStart={drag} onClick={() => console.log('drag object clicked')} style={{ background: 'green' }}>
+                        <div id="drag1" draggable
+                            onDragStart={dragStart}
+                            style={{ background: 'blue' }}
+                            onDrag={drag}
+                        >
                             Dragable
                         </div>
-                    </div>
-                    <div onDrop={drop}
+                    </Dropzone>
+                    <Dropzone id="dropzone2" onDrop={drop}
                         onDragEnter={() => console.log('entered drag zone')}
                         onDragLeave={() => console.log('left drag zone')}
+                        onDragOver={() => console.log('over drag zone')}
+                        onDragExit={() => console.log('exit drag zone')}
                         style={{ width: 100, height: 100, background: 'gray', borderWidth: 1, borderColor: 'black', borderStyle: 'solid' }}>
-
-                    </div>
+                    </Dropzone>
                 </Layer>
 
 
@@ -76,10 +84,11 @@ window.onload = async () => {
                             backgroundColor: "rgba(255,0,0,0.5)"
                         }}
                     >
-                        <button style={{ position: 'relative', background: 'rgb(255,255,255)', top: '33%' }} onClick={(e) => console.log('Button on Layer 3')}>Layer 3</button>
-
-
-
+                        <button
+                            style={{ position: 'relative', background: 'rgb(255,255,255)', top: '33%' }}
+                            onClick={(e) => console.log('Button on Layer 3')}
+                            onMouseEnter={() => console.log('MouseEnter Button Layer 3')}
+                        >Layer 3</button>
                     </Layer>
                     <Layer id="Layer 5"
                         style={{
@@ -89,20 +98,28 @@ window.onload = async () => {
                         }}
                     >
                         NestedDragLayer
-                        <div onDrop={drop}
+                        <Dropzone id="dropzone3" onDrop={drop}
                             onDragEnter={() => console.log('entered NestedDrag zone')}
                             onDragLeave={() => console.log('left NestedDrag zone')}
+                            onDragOver={() => console.log('over NestedDrag zone')}
+                            onDragExit={() => console.log('exit NestedDrag zone')}
+                            onMouseEnter={() => console.log('MouseEnter NestedDrag zone')}
                             style={{ width: 100, height: 100, background: 'gray', borderWidth: 1, borderColor: 'black', borderStyle: 'solid' }}>
-                            <div id="drag2" draggable={true} onDragStart={drag} onClick={() => console.log('drag object clicked')} style={{ background: 'green' }}>
-                                Nested Dragable
-                        </div>
-                        </div>
-                        <div onDrop={drop}
+                            <div id="drag2" draggable
+                                onDragStart={dragStart}
+                                onDragEnd={() => console.log('i just got dragged!')}
+                                onClick={() => console.log('drag object clicked')} style={{ background: 'green' }}>
+                                Nested
+                            </div>
+                        </Dropzone>
+                        <Dropzone id="dropzone4" onDrop={drop}
                             onDragEnter={() => console.log('entered NestedDrag zone')}
                             onDragLeave={() => console.log('left NestedDrag zone')}
+                            onDragOver={() => console.log('over NestedDrag zone')}
+                            onDragExit={() => console.log('exit NestedDrag zone')}
                             style={{ width: 100, height: 100, background: 'gray', borderWidth: 1, borderColor: 'black', borderStyle: 'solid' }}>
 
-                        </div>
+                        </Dropzone>
                     </Layer>
                 </Multilayer>
 

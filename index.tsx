@@ -2,6 +2,7 @@ import * as React from "react";
 
 type PropType<Type> = Type extends React.Component<infer P> ? P : never
 type ReactElement<Type> = React.ReactElement<PropType<Type>>
+type Without<T, K> = Pick<T, Exclude<keyof T, K>>;
 
 export class Layer<Props = {}, State = {}> extends React.Component<Props & React.HTMLAttributes<HTMLDivElement>, State> {
     readonly ref = React.createRef<HTMLDivElement>()
@@ -23,7 +24,9 @@ export class Layer<Props = {}, State = {}> extends React.Component<Props & React
     }
 
     private checkMouseEnter(target: Element, e: React.MouseEvent<HTMLDivElement>) {
-        if (this.lastPointerTarget !== target && target && !target.contains(this.lastPointerTarget)) {
+        if (this.lastPointerTarget !== target
+            && target && !target.contains(this.lastPointerTarget)
+        ) {
             const event = new MouseEvent('mouseenter', { ...e, bubbles: false })
             target.dispatchEvent(event)
         }
@@ -60,32 +63,28 @@ export class Layer<Props = {}, State = {}> extends React.Component<Props & React
     private checkDragEnter(target: Element, e: React.MouseEvent<HTMLDivElement>, dataTransfer: DataTransfer) {
         if (this.lastPointerTarget !== target && target && !target.contains(this.lastPointerTarget)) {
             const event = new DragEvent('dragenter', { ...e, bubbles: false, dataTransfer })
-            console.log('dragenter ', event, ' triggered', ' on ', target)
-            target.dispatchEvent(event)
+            return target.dispatchEvent(event)
         }
     }
 
     private checkDragOver(target: Element, e: React.MouseEvent<HTMLDivElement>, dataTransfer: DataTransfer) {
         if (target && this.lastPointerTarget !== target) {
             const event = new DragEvent('dragover', { ...e, dataTransfer })
-            console.log('dragover triggered', ' on ', target)
-            target.dispatchEvent(event)
+            return target.dispatchEvent(event)
         }
     }
 
     private checkDragLeave(target: Element, e: React.MouseEvent<HTMLDivElement>, dataTransfer: DataTransfer) {
         if (this.lastPointerTarget !== target && this.lastPointerTarget && !this.lastPointerTarget.contains(target)) {
             const event = new DragEvent('dragleave', { ...e, bubbles: false, dataTransfer })
-            console.log('dragleave triggered', ' on ', this.lastPointerTarget)
-            this.lastPointerTarget.dispatchEvent(event)
+            return this.lastPointerTarget.dispatchEvent(event)
         }
     }
 
     private checkDragExit(target: Element, e: React.MouseEvent<HTMLDivElement>, dataTransfer: DataTransfer) {
         if (this.lastPointerTarget && this.lastPointerTarget !== target) {
             const event = new DragEvent('dragexit', { ...e, dataTransfer })
-            console.log('dragexit triggered', ' on ', this.lastPointerTarget)
-            this.lastPointerTarget.dispatchEvent(event)
+            return this.lastPointerTarget.dispatchEvent(event)
         }
     }
 }
@@ -197,17 +196,10 @@ class ClickCaptureLayer extends React.Component<{ wrapper: Multilayer, dragHandl
             onMouseDown={this.handleMouseDown}
             onMouseUp={this.handleMouseUp}
             onContextMenu={mousePropagator}
-
             onWheel={wheelPropagator}
 
             //onDrag={dragPropagator}
-            //onDragStart={dragPropagator}
             //onDragEnd={dragPropagator}
-            //onDragEnter={dragPropagator}
-            //onDragLeave={dragPropagator}
-            //onDragOver={dragPropagator}
-            //onDragExit={dragPropagator}
-            //onDrop={dragPropagator}
 
             onMouseMove={this.handleMouseMove}
         />)
@@ -237,19 +229,22 @@ class ClickCaptureLayer extends React.Component<{ wrapper: Multilayer, dragHandl
     handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
         this.props.wrapper.getPropagator(MouseEvent)(e)
 
-        if (this.props.dragHandler.dragging && !this.props.nested) {
+        if (this.props.dragHandler.dragging) {
             this.props.wrapper.forEachLayer(layer => {
                 const target = document.elementFromPoint(e.clientX, e.clientY)
                 const event = new DragEvent('drop', { ...e, dataTransfer: this.props.dragHandler.dragDataObject })
                 target.dispatchEvent(event)
                 if (event.defaultPrevented) return true
             })
+        }
 
+        if (this.props.dragHandler.dragging && !this.props.nested) {
             const event = new DragEvent('dragend', { ...e, dataTransfer: this.props.dragHandler.dragDataObject })
             this.props.dragHandler.dragTarget.dispatchEvent(event)
             this.props.dragHandler.dragging = false
             this.props.dragHandler.dragDataObject = undefined
         }
+
         if (this.props.dragHandler.dragTarget && !this.props.nested) this.props.dragHandler.dragTarget = undefined
     }
 
@@ -262,6 +257,9 @@ class ClickCaptureLayer extends React.Component<{ wrapper: Multilayer, dragHandl
 
             this.props.dragHandler.dragTarget.dispatchEvent(event)
             this.props.dragHandler.dragging = true
+        } else if (this.props.dragHandler.dragTarget && this.props.dragHandler.dragging && !this.props.nested) {
+            const event = new DragEvent('drag', { ...e, dataTransfer: this.props.dragHandler.dragDataObject })
+            this.props.dragHandler.dragTarget.dispatchEvent(event)
         }
 
         this.props.wrapper.forEachLayer(layer => {
@@ -295,4 +293,48 @@ export const layerStyles: React.CSSProperties = {
     width: '100%',
     height: '100%',
     background: 'transparent'
+}
+
+interface DropzoneProps {
+    onDragEnter?: (arg0: DragEvent) => void,
+    onDragLeave?: (arg0: DragEvent) => void,
+    onDragExit?: (arg0: DragEvent) => void,
+    onDragOver?: (arg0: DragEvent) => void,
+    onDrop?: (arg0: DragEvent) => void
+}
+
+export class Dropzone extends React.Component<DropzoneProps & Without<React.HTMLAttributes<HTMLDivElement>, keyof DropzoneProps>>{
+    zone = React.createRef<HTMLDivElement>()
+
+    dragenter = (e: DragEvent) => this.props.onDragEnter && this.props.onDragEnter(e)
+    dragleave = (e: DragEvent) => this.props.onDragLeave && this.props.onDragLeave(e)
+    dragover = (e: DragEvent) => this.props.onDragOver && this.props.onDragOver(e)
+    dragexit = (e: DragEvent) => this.props.onDragExit && this.props.onDragExit(e)
+    drop = (e: DragEvent) => this.props.onDrop && this.props.onDrop(e)
+
+
+    componentDidMount() {
+        this.zone.current.addEventListener('dragenter', this.dragenter)
+        this.zone.current.addEventListener('dragleave', this.dragleave)
+        this.zone.current.addEventListener('dragover', this.dragover)
+        this.zone.current.addEventListener('dragexit', this.dragexit)
+        this.zone.current.addEventListener('drop', this.drop)
+    }
+
+    componentWillUnmount() {
+        this.zone.current.removeEventListener('dragenter', this.dragenter)
+        this.zone.current.removeEventListener('dragleave', this.dragleave)
+        this.zone.current.removeEventListener('dragover', this.dragover)
+        this.zone.current.removeEventListener('dragexit', this.dragexit)
+        this.zone.current.removeEventListener('drop', this.drop)
+    }
+
+    render() {
+        const { onDragEnter, onDragLeave, onDragExit, onDragOver, onDrop, ...rest } = this.props
+        return (
+            <div ref={this.zone} {...rest}>
+                {this.props.children}
+            </div>
+        )
+    }
 }
