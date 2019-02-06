@@ -2,7 +2,6 @@ import * as React from "react";
 
 type PropType<Type> = Type extends React.Component<infer P> ? P : never
 type ReactElement<Type> = React.ReactElement<PropType<Type>>
-type Without<T, K> = Pick<T, Exclude<keyof T, K>>;
 
 export class Layer<Props = {}, State = {}> extends React.Component<Props & React.HTMLAttributes<HTMLDivElement>, State> {
     readonly ref = React.createRef<HTMLDivElement>()
@@ -188,7 +187,6 @@ class ClickCaptureLayer extends React.Component<{ wrapper: Multilayer, dragHandl
     render() {
         const mousePropagator = this.props.wrapper.getPropagator(MouseEvent)
         const wheelPropagator = this.props.wrapper.getPropagator(WheelEvent)
-        const dragPropagator = this.props.wrapper.getPropagator(DragEvent)
 
         return (<div style={layerStyles} ref={this.ref}
             onClick={mousePropagator}
@@ -197,10 +195,6 @@ class ClickCaptureLayer extends React.Component<{ wrapper: Multilayer, dragHandl
             onMouseUp={this.handleMouseUp}
             onContextMenu={mousePropagator}
             onWheel={wheelPropagator}
-
-            //onDrag={dragPropagator}
-            //onDragEnd={dragPropagator}
-
             onMouseMove={this.handleMouseMove}
         />)
     }
@@ -295,46 +289,4 @@ export const layerStyles: React.CSSProperties = {
     background: 'transparent'
 }
 
-interface DropzoneProps {
-    onDragEnter?: (arg0: DragEvent) => void,
-    onDragLeave?: (arg0: DragEvent) => void,
-    onDragExit?: (arg0: DragEvent) => void,
-    onDragOver?: (arg0: DragEvent) => void,
-    onDrop?: (arg0: DragEvent) => void
-}
-
-export class Dropzone extends React.Component<DropzoneProps & Without<React.HTMLAttributes<HTMLDivElement>, keyof DropzoneProps>>{
-    zone = React.createRef<HTMLDivElement>()
-
-    dragenter = (e: DragEvent) => this.props.onDragEnter && this.props.onDragEnter(e)
-    dragleave = (e: DragEvent) => this.props.onDragLeave && this.props.onDragLeave(e)
-    dragover = (e: DragEvent) => this.props.onDragOver && this.props.onDragOver(e)
-    dragexit = (e: DragEvent) => this.props.onDragExit && this.props.onDragExit(e)
-    drop = (e: DragEvent) => this.props.onDrop && this.props.onDrop(e)
-
-
-    componentDidMount() {
-        this.zone.current.addEventListener('dragenter', this.dragenter)
-        this.zone.current.addEventListener('dragleave', this.dragleave)
-        this.zone.current.addEventListener('dragover', this.dragover)
-        this.zone.current.addEventListener('dragexit', this.dragexit)
-        this.zone.current.addEventListener('drop', this.drop)
-    }
-
-    componentWillUnmount() {
-        this.zone.current.removeEventListener('dragenter', this.dragenter)
-        this.zone.current.removeEventListener('dragleave', this.dragleave)
-        this.zone.current.removeEventListener('dragover', this.dragover)
-        this.zone.current.removeEventListener('dragexit', this.dragexit)
-        this.zone.current.removeEventListener('drop', this.drop)
-    }
-
-    render() {
-        const { onDragEnter, onDragLeave, onDragExit, onDragOver, onDrop, ...rest } = this.props
-        return (
-            <div ref={this.zone} {...rest}>
-                {this.props.children}
-            </div>
-        )
-    }
-}
+export { default as Hoverable } from "./Hoverable"
