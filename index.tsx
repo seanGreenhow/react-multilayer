@@ -235,11 +235,13 @@ class ClickCaptureLayer extends React.Component<{ wrapper: Multilayer, dragHandl
         if (this.props.dragHandler.dragging && !this.props.nested) {
             const event = new DragEvent('dragend', { ...e, dataTransfer: this.props.dragHandler.dragDataObject })
             this.props.dragHandler.dragTarget.dispatchEvent(event)
+            
             this.props.dragHandler.dragging = false
             this.props.dragHandler.dragDataObject = undefined
+            this.props.dragHandler.dragTarget = undefined
         }
 
-        if (this.props.dragHandler.dragTarget && !this.props.nested) this.props.dragHandler.dragTarget = undefined
+        
     }
 
     handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
