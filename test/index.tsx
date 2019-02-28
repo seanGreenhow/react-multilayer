@@ -2,22 +2,6 @@ import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { Layer, Multilayer } from "..";
 
-function dragStart(ev: React.DragEvent<HTMLElement>) {
-    ev.dataTransfer.setData("text", (ev.target as any).id);
-}
-
-function drag(ev: React.DragEvent<HTMLElement>) {
-    ev.persist()
-    console.log(ev)
-}
-
-function drop(ev: DragEvent) {
-    ev.preventDefault();
-    var data = ev.dataTransfer.getData("text");
-    (ev.target as any).appendChild(document.getElementById(data));
-    // event.target is the highest element on the layer, but should probably be the recieving object (aka the div with the onDrop trigger)
-}
-
 window.onload = async () => {
     ReactDOM.render((
         <div style={{ height: '100%' }}>
