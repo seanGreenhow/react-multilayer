@@ -1,13 +1,13 @@
 {
-    "compilerOptions": {
-        "target": "es5",
-        "lib": [ "esnext", "dom" ],
-        "downlevelIteration": true,
-        "module": "commonjs",
-        "jsx": "react",
-        "typeRoots": [ "node_modules/@types" ],
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["esnext", "dom"],
+    "downlevelIteration": true,
+    "module": "commonjs",
+    "jsx": "react",
 
-        "outDir": "./build",
-        "declaration": true
-    }
+    "outDir": "./build",
+    "declaration": true
+  },
+  "include": ["./src"]
 }
